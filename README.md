@@ -1,4 +1,4 @@
-# CLI AI Agent
+# CLI AI Agent (Gemini + Tool Calling)
 
 A simple command‑line AI agent powered by Google's Gemini that can plan and call tools to work inside a sandboxed project directory. The agent can list files, read files (with safe truncation), run Python scripts, and write files. A small calculator app is included as a demo workspace the agent can operate on.
 
@@ -6,36 +6,21 @@ A simple command‑line AI agent powered by Google's Gemini that can plan and ca
 
 - **Requirements**: Python >= 3.12
 - **Dependencies**: Managed via `pyproject.toml`
-  
-Option A — pip
+
+Option A — Using uv (recommended)
+
+```bash
+uv sync
+source .venv/bin/activate
+```
+
+Option B — Using pip
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -U pip
-pip install -r <(python - << 'PY'
-import tomllib, sys
-with open('pyproject.toml','rb') as f:
-    d=tomllib.load(f)
-for dep in d['project']['dependencies']:
-    print(dep)
-PY
-)
-```
-
-Option B — uv (recommended if you use `uv`)
-
-```bash
-uv venv
-source .venv/bin/activate
-uv pip install -r <(python - << 'PY'
-import tomllib, sys
-with open('pyproject.toml','rb') as f:
-    d=tomllib.load(f)
-for dep in d['project']['dependencies']:
-    print(dep)
-PY
-)
+pip install google-genai==1.12.1 python-dotenv==1.1.0
 ```
 
 Set your Gemini API key (create a `.env` file or export directly):
@@ -44,12 +29,13 @@ Set your Gemini API key (create a `.env` file or export directly):
 echo 'GEMINI_API_KEY=your_api_key_here' > .env
 # or: export GEMINI_API_KEY=your_api_key_here
 ```
+
 ## Quick Start
 
 Run the agent with a natural‑language prompt:
 
 ```bash
-python main.py "List the files in the working directory and show me the calculator entry point" --verbose
+uv run main.py "List the files in the working directory and show me the calculator entry point" --verbose
 ```
 
 - The agent executes in an iterative loop (max iterations set by `MAX_ITERS`).
@@ -60,26 +46,35 @@ python main.py "List the files in the working directory and show me the calculat
 - Ask it to inspect the demo calculator project:
 
 ```bash
-python main.py "Scan the current directory, open calculator/main.py, and summarize how it parses expressions."
+uv run main.py "Scan the current directory, open calculator/main.py, and summarize how it parses expressions."
 ```
 
 - Run the calculator app via the agent tools:
 
 ```bash
-python main.py "Execute calculator/main.py with the argument '3 + 5' and show me the program output."
+uv run main.py "Execute calculator/main.py with the argument '3 + 5' and show me the program output."
 ```
 
 - Create or modify a file safely within the working directory:
 
 ```bash
-python main.py "Write a new file calculator/README.md with a short description of the calculator. Then list files again."
+uv run main.py "Write a new file calculator/README.md with a short description of the calculator. Then list files again."
 ```
 
 - Read a specific file with truncation protection:
 
 ```bash
-python main.py "Read calculator/pkg/calculator.py and extract the supported operators and precedence."
+uv run main.py "Read calculator/pkg/calculator.py and extract the supported operators and precedence."
 ```
+
+## Features
+
+- **AI Agent with Tool Calling**: Uses Google Gemini to plan and execute multi-step tasks
+- **File Operations**: List, read, and write files safely within a sandboxed directory
+- **Python Execution**: Run Python scripts with arguments and capture output
+- **Safety Controls**: Path restrictions, file size limits, execution timeouts
+- **Configurable**: Adjust working directory, max iterations, and file read limits
+- **Verbose Mode**: See token usage and tool call details
 
 ## Environment
 
@@ -92,3 +87,5 @@ python main.py "Read calculator/pkg/calculator.py and extract the supported oper
 - The agent loops until it returns a final text response or hits `MAX_ITERS`.
 - Tool responses are fed back to the model to enable multi‑step plans.
 - Errors from tools are returned as readable messages for transparency.
+
+
