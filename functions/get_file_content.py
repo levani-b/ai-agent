@@ -1,5 +1,6 @@
 import os
 from config import MAX_CHARS
+from google.genai import types
 
 def get_file_content(working_directory, file_path):
     target_file_absolute_path = os.path.abspath(os.path.join(working_directory, file_path))
@@ -26,3 +27,18 @@ def get_file_content(working_directory, file_path):
     return file_content_string
 
 
+
+schema_get_file_content = types.FunctionDeclaration(
+    name="get_file_content",
+    description="Reads the content of a file inside the working directory, with output truncated if it exceeds the maximum allowed length.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="The relative path of the file to read, from the working directory."
+            ),
+        },
+        required=["file_path"]
+    ),
+)
